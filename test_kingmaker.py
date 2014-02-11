@@ -22,3 +22,20 @@ class TestGrid(object):
         eq_(len(self.g.nodes), 8)
         eq_(len(self.g.nodes[0]), 8)
         ok_(isinstance(self.g.nodes[0][0], k.Node))
+        
+    def test_get_node(self):
+        n = self.g.get_node(3, 4)
+        eq_(n.x, 3)
+        eq_(n.y, 4)
+        
+class TestChar(object):
+    def setup(self):
+        self.c = k.Character()
+        
+    def test_get_mod(self):
+        self.c.strength = 18
+        str_mod = self.c.get_mod(self.c.strength)
+        eq_(str_mod, 4)
+        self.c.wisdom = 9
+        wis_mod = self.c.get_mod(self.c.wisdom)
+        eq_(wis_mod, -1)
