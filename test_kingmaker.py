@@ -31,6 +31,14 @@ class TestGrid(object):
 class TestChar(object):
     def setup(self):
         self.c = k.Character()
+        self.nigel_profile = {"Name": "Nigel",
+                              "STR": 16,
+                              "DEX": 13,
+                              "CON": 17,
+                              "INT": 15,
+                              "WIS": 20,
+                              "CHA": 14
+                              }
         
     def test_get_mod(self):
         self.c.strength = 18
@@ -39,3 +47,11 @@ class TestChar(object):
         self.c.wisdom = 9
         wis_mod = self.c.get_mod(self.c.wisdom)
         eq_(wis_mod, -1)
+        
+    def test_setup(self):
+        self.c.setup(self.nigel_profile)
+        ok_(self.c.name == "Nigel")
+        ok_(self.c.wisdom == 20)
+        ok_(self.c.get_mod(self.c.wisdom)==5)
+        
+        

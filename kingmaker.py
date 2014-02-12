@@ -3,32 +3,126 @@ Created on Feb 11, 2014
 
 @author: rwill127
 '''
+#Globals: Tables
+
+#Name, Stability, Consumption
+PROMOTION_TABLE = {"None": [-1, 0],
+                   "Token": [1, 1],
+                   "Standard": [2, 2],
+                   "Aggressive": [3, 4],
+                   "Expansionist": [4, 8]}
+
+#Name, Economy, Loyalty
+TAXATION_TABLE = {"None": [0, 1],
+                  "Light": [1, -1],
+                  "Normal": [2, -2],
+                  "Heavy": [3, -4],
+                  "Overwhelming": [4, -8]}
+
+#Number Per Year, Loyalty, Consumption
+HOLIDAY_TABLE = {0: [-1, 0],
+                 1: [1, 1],
+                 6: [2, 2],
+                 12: [3, 4],
+                 24: [4, 8]
+                 }
 
 class Kingdom(object):
     def __init__(self):
+        #Core Stats
         self.economy = 0
         self.stability = 0
         self.loyalty = 0
+        
+        #Secondary Stats
         self.unrest = 0
         self.treasury = 0
         self.consumption = 0
-        self.alignment = "neutral"
+        
+        #Alignment
+        self.order_alignment = "Neutral"
+        self.moral_alignment = "Neutral"
+        
+        #Size
         self.size = 0
         self.control_dc = 20 + self.size
         self.population = 0
+        
+        #Maps
         self.cities = []
         self.hexes = []
-        self.leaders = {"Ruler": None,
-                        "Councilor": None,
-                        "General": None,
-                        "Grand Diplomat": None,
-                        "High Priest": None,
-                        "Magister": None,
-                        "Marshal": None,
-                        "Royal Assassin": None,
-                        "Spymaster": None,
-                        "Treasurer": None
-                        }     
+        
+        #Leaders
+        self.leader_roles = ["Ruler",
+                             "Councilor",
+                             "General",
+                             "Grand Diplomat",
+                             "High Priest",
+                             "Magister",
+                             "Marshal",
+                             "Royal Assassin",
+                             "Spymaster",
+                             "Treasurer",
+                             "Warden"
+                             ]
+        
+        self.leader_stats = [["CHA"],
+                             ["CHA", "WIS"],
+                             ["CHA", "STR"],
+                             ["CHA", "INT"],
+                             ["CHA", "WIS"],
+                             ["CHA", "INT"],
+                             ["DEX", "WIS"],
+                             ["DEX", "STR"],
+                             ["DEX", "INT"],
+                             ["INT", "WIS"]
+                             ["CON", "STR"]
+                             ]
+        
+        self.leader_effects = ["Flexible",
+                               "Loyalty",
+                               "Stability",
+                               "Stability",
+                               "Stability",
+                               "Economy",
+                               "Economy",
+                               "Loyalty",
+                               "Flexible",
+                               "Economy",
+                               "Loyalty"]
+        
+        #Edicts
+        self.promotion = "None"
+        self.taxation = "Normal"
+        self.holidays = 0
+        
+
+        
+        
+    def calculate_economy(self):
+        economy = 0
+        if self.order_alignment == "Lawful":
+            economy += 2
+        if self.moral_alignment == "Evil":
+            economy += 2
+        for city in self.cities:
+            economy += city.calculate_economy()
+        mine_count = 0
+        road_count = 0
+        river_count = 0
+        for hex in self.hexes:
+            if hex.mine:
+                mine_count += 1
+            if hex.road:
+                road_count += 1
+            if hex.river:
+                river_count += 1
+        economy += (mine_count +
+                          int(road_count/4) +
+                          int(river_count/4)
+                          )
+        economy -= self.unrest
+        
         
 class Character(object):
     def __init__(self):
@@ -40,6 +134,19 @@ class Character(object):
         self.charisma = 0
         
         self.name = None
+        
+    def setup(self, profile):
+        '''
+        Takes a dict of the character's name and stats
+        and creates a Character object from it.
+        '''
+        self.name = profile["Name"]
+        self.strength = profile["STR"]
+        self.dexterity = profile["DEX"]
+        self.constitution = profile["CON"]
+        self.intelligence = profile["INT"]
+        self.wisdom = profile["WIS"]
+        self.charisma = profile["CHA"]
         
     def get_mod(self, stat):
         modifier = (int(stat) - 10)/2
@@ -107,7 +214,7 @@ class HexMap(object):
 class Settlement(object):
     def __init__(self):
         self.first_grid = Grid()
-        self.grids = [first_grid]
+        self.grids = [self.first_grid]
         self.buildings = []
         
 class Building(object):
